@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/murlokswarm/app"
@@ -149,6 +150,7 @@ func (d *Driver) Run(f app.Factory) error {
 	errC := make(chan error)
 
 	go func() {
+		runtime.LockOSThread()
 		errC <- d.macRPC.Call("driver.Run", nil, nil)
 	}()
 

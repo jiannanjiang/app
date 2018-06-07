@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/url"
 	"os/exec"
+	"reflect"
 	"strings"
 	"time"
 
@@ -536,6 +537,21 @@ func (w *Window) Close() error {
 	}{
 		ID: w.ID().String(),
 	})
+}
+
+func (w *Window) JS(varOrFunc string, ret interface{}, args ...interface{}) error {
+	parsedArgs := make([]string, len(args))
+	for i, arg := range args {
+		switch reflect.TypeOf(arg).Kind() {
+		case reflect.String:
+
+		case reflect.Func:
+
+		default:
+		}
+	}
+
+	panic("not implemented")
 }
 
 func onWindowClose(w *Window, in map[string]interface{}) interface{} {

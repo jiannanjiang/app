@@ -38,15 +38,9 @@ examples/test/test
 *.exe
 *goapp.js
 *.map
-
+*.app
 
 examples/action-event/bin/mac/mac
-
-*.map
-
-*.map
-
 examples/test/bin/test-web/resources/goapp.js.map
-
 examples/test/bin/test-web/resources/goapp.js
 examples/statusmenu/statusmenu
