@@ -23,7 +23,7 @@ func TestImport(t *testing.T) {
 
 func TestApp(t *testing.T) {
 	var d app.Driver
-	var newPage func(c app.PageConfig) (app.Page, error)
+	var newPage func(c app.PageConfig) app.Page
 
 	output := &bytes.Buffer{}
 	app.Loggers = []app.Logger{app.NewLogger(output, output, true, true)}
@@ -41,32 +41,27 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, filepath.Join("storage", "hello", "world"), app.Storage("hello", "world"))
 
 		// Window:
-		win, err := app.NewWindow(app.WindowConfig{
+		win := app.NewWindow(app.WindowConfig{
 			DefaultURL: "tests.foo",
 		})
-		require.NoError(t, err)
 
 		compo := win.Compo()
 		require.NotNil(t, compo)
 		app.Render(compo)
 
 		// Page:
-		var page app.Page
-		page, err = newPage(app.PageConfig{
+		page := newPage(app.PageConfig{
 			DefaultURL: "tests.foo",
 		})
-		require.NoError(t, err)
 
 		compo = page.Compo()
 		require.NotNil(t, compo)
 		app.Render(compo)
 
 		// Menu:
-		var menu app.Menu
-		menu, err = app.NewContextMenu(app.MenuConfig{
+		menu := app.NewContextMenu(app.MenuConfig{
 			DefaultURL: "tests.bar",
 		})
-		require.NoError(t, err)
 
 		compo = menu.Compo()
 		require.NotNil(t, compo)
@@ -75,31 +70,16 @@ func TestApp(t *testing.T) {
 		elem := app.ElemByCompo(compo)
 		assert.Equal(t, menu.ID(), elem.ID())
 
-		// File panels:
-		err = app.NewFilePanel(app.FilePanelConfig{})
-		require.NoError(t, err)
-
-		err = app.NewSaveFilePanel(app.SaveFilePanelConfig{})
-		require.NoError(t, err)
-
-		// Share:
-		err = app.NewShare("Hello world")
-		require.NoError(t, err)
-
-		// Notifications:
-		err = app.NewNotification(app.NotificationConfig{})
-		require.NoError(t, err)
-
-		// Menubar:
-		_, err = app.MenuBar()
-		require.NoError(t, err)
+		app.NewFilePanel(app.FilePanelConfig{})
+		app.NewSaveFilePanel(app.SaveFilePanelConfig{})
+		app.NewShare("Hello world")
+		app.NewNotification(app.NotificationConfig{})
+		app.MenuBar()
 
 		// Status menu:
-		var statusMenu app.StatusMenu
-		statusMenu, err = app.NewStatusMenu(app.StatusMenuConfig{})
-		require.NoError(t, err)
+		statusMenu := app.NewStatusMenu(app.StatusMenuConfig{})
 
-		err = statusMenu.Load("tests.bar")
+		err := statusMenu.Load("tests.bar")
 		require.NoError(t, err)
 
 		compo = statusMenu.Compo()
@@ -119,9 +99,7 @@ func TestApp(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Dock:
-		var dockTile app.DockTile
-		dockTile, err = app.Dock()
-		require.NoError(t, err)
+		dockTile := app.Dock()
 
 		err = dockTile.Load("tests.bar")
 		require.NoError(t, err)
@@ -165,15 +143,12 @@ func TestApp(t *testing.T) {
 	}
 	d = dtest
 
-	newPage = func(c app.PageConfig) (app.Page, error) {
-		err := app.NewPage(c)
-		if err != nil {
-			return nil, err
-		}
-		return dtest.Page, nil
+	newPage = func(c app.PageConfig) app.Page {
+		app.NewPage(c)
+		return dtest.Page
 	}
 
-	err := app.Run(d, app.Logs())
+	err := app.Run(d)
 	require.NoError(t, err)
 
 	t.Log(output.String())
@@ -244,11 +219,9 @@ func TestAppError(t *testing.T) {
 		assert.Error(t, err)
 
 		// Status Bar:
-		var statusMenu app.StatusMenu
-		statusMenu, err = app.NewStatusMenu(app.StatusMenuConfig{
+		statusMenu := app.NewStatusMenu(app.StatusMenuConfig{
 			Text: "test",
 		})
-		require.NoError(t, err)
 
 		err = statusMenu.Load("")
 		assert.Error(t, err)
@@ -266,9 +239,7 @@ func TestAppError(t *testing.T) {
 		assert.Error(t, err)
 
 		// Dock tile:
-		var dockTile app.DockTile
-		dockTile, err = app.Dock()
-		require.NoError(t, err)
+		dockTile := app.Dock()
 
 		err = dockTile.Load("")
 		assert.Error(t, err)
@@ -291,41 +262,22 @@ func TestAppError(t *testing.T) {
 	}
 	d = app.Logs()(dtest)
 
-	err := app.Run(d, app.Logs())
+	err := app.Run(d)
 	assert.Error(t, err)
 
-	_, err = app.NewWindow(app.WindowConfig{})
-	assert.Error(t, err)
-
-	err = app.NewPage(app.PageConfig{})
-	assert.Error(t, err)
-
-	_, err = app.NewContextMenu(app.MenuConfig{})
-	assert.Error(t, err)
-
-	err = app.NewFilePanel(app.FilePanelConfig{})
-	assert.Error(t, err)
-
-	err = app.NewSaveFilePanel(app.SaveFilePanelConfig{})
-	assert.Error(t, err)
-
-	err = app.NewShare(nil)
-	assert.Error(t, err)
-
-	err = app.NewNotification(app.NotificationConfig{})
-	assert.Error(t, err)
-
-	_, err = app.MenuBar()
-	assert.Error(t, err)
-
-	_, err = app.NewStatusMenu(app.StatusMenuConfig{})
-	assert.Error(t, err)
-
-	_, err = app.Dock()
-	assert.Error(t, err)
+	app.NewWindow(app.WindowConfig{})
+	app.NewPage(app.PageConfig{})
+	app.NewContextMenu(app.MenuConfig{})
+	app.NewFilePanel(app.FilePanelConfig{})
+	app.NewSaveFilePanel(app.SaveFilePanelConfig{})
+	app.NewShare(nil)
+	app.NewNotification(app.NotificationConfig{})
+	app.MenuBar()
+	app.NewStatusMenu(app.StatusMenuConfig{})
+	app.Dock()
 
 	dtest.SimulateErr = false
-	err = app.Run(d, app.Logs())
+	err = app.Run(d)
 	require.NoError(t, err)
 
 	t.Log(output.String())

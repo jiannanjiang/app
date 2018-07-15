@@ -44,6 +44,10 @@ func Run(d Driver) error {
 	return driver.Run(components)
 }
 
+func RunningDriver() Driver {
+	return driver
+}
+
 // Name returns the application name.
 func Name() string {
 	return driver.AppName()
