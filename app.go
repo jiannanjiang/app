@@ -8,6 +8,9 @@ import (
 )
 
 var (
+	// Loggers are the loggers used by the app.
+	Loggers []Logger
+
 	driver     Driver
 	components Factory
 )
@@ -35,23 +38,13 @@ func Import(c Compo) {
 	}
 }
 
-// Run runs the app with the driver as backend.
-func Run(d Driver, addons ...Addon) error {
-	for _, addon := range addons {
-		d = addon(d)
-	}
+// Run runs the app with the given driver as backend.
+func Run(d Driver) error {
 	driver = d
 	return driver.Run(components)
 }
 
-// RunningDriver returns the running driver.
-func RunningDriver() Driver {
-	return driver
-}
-
 // Name returns the application name.
-//
-// It panics if called before Run.
 func Name() string {
 	return driver.AppName()
 }
@@ -59,8 +52,6 @@ func Name() string {
 // Resources returns the given path prefixed by the resources directory
 // location.
 // Resources should be used only for read only operations.
-//
-// It panics if called before Run.
 func Resources(path ...string) string {
 	return driver.Resources(path...)
 }
@@ -93,107 +84,113 @@ func CSSResources() []string {
 
 // Storage returns the given path prefixed by the storage directory
 // location.
-//
-// It panics if called before Run.
 func Storage(path ...string) string {
 	return driver.Storage(path...)
 }
 
 // NewWindow creates and displays the window described by the given
 // configuration.
-//
-// It panics if called before Run.
-func NewWindow(c WindowConfig) (Window, error) {
-	return driver.NewWindow(c)
+func NewWindow(c WindowConfig) Window {
+	w, _ := driver.NewWindow(c)
+	return w
 }
 
 // NewPage creates the page described by the given configuration.
-//
-// It panics if called before Run.
-func NewPage(c PageConfig) error {
-	return driver.NewPage(c)
+func NewPage(c PageConfig) {
+	driver.NewPage(c)
 }
 
 // NewContextMenu creates and displays the context menu described by the
 // given configuration.
-//
-// It panics if called before Run.
-func NewContextMenu(c MenuConfig) (Menu, error) {
-	return driver.NewContextMenu(c)
+func NewContextMenu(c MenuConfig) Menu {
+	m, _ := driver.NewContextMenu(c)
+	return m
 }
 
 // Render renders the given component.
-// It should be called when the display of component c have to be updated.
-//
-// It panics if called before Run.
+// It should be called when the component appearance have to be updated.
 func Render(c Compo) {
-	driver.CallOnUIGoroutine(func() {
+	CallOnUIGoroutine(func() {
 		driver.Render(c)
 	})
 }
 
 // ElemByCompo returns the element where the given component is mounted.
-//
-// It panics if called before Run.
 func ElemByCompo(c Compo) Elem {
 	return driver.ElemByCompo(c)
 }
 
 // NewFilePanel creates and displays the file panel described by the given
 // configuration.
-//
-// It panics if called before Run.
-func NewFilePanel(c FilePanelConfig) error {
-	return driver.NewFilePanel(c)
+func NewFilePanel(c FilePanelConfig) {
+	driver.NewFilePanel(c)
 }
 
 // NewSaveFilePanel creates and displays the save file panel described by the
 // given configuration.
-//
-// It panics if called before Run.
-func NewSaveFilePanel(c SaveFilePanelConfig) error {
-	return driver.NewSaveFilePanel(c)
+func NewSaveFilePanel(c SaveFilePanelConfig) {
+	driver.NewSaveFilePanel(c)
 }
 
 // NewShare creates and display the share pannel to share the given value.
-//
-// It panics if called before Run.
-func NewShare(v interface{}) error {
-	return driver.NewShare(v)
+func NewShare(v interface{}) {
+	driver.NewShare(v)
 }
 
 // NewNotification creates and displays the notification described in the
 // given configuration.
-//
-// It panics if called before Run.
-func NewNotification(c NotificationConfig) error {
-	return driver.NewNotification(c)
+func NewNotification(c NotificationConfig) {
+	driver.NewNotification(c)
 }
 
 // MenuBar returns the menu bar.
-//
-// It panics if called before Run.
-func MenuBar() (Menu, error) {
-	return driver.MenuBar()
+func MenuBar() Menu {
+	m, _ := driver.MenuBar()
+	return m
 }
 
 // NewStatusMenu creates and displays the status menu described in the given
 // configuration.
-//
-// It panics if called before Run.
-func NewStatusMenu(c StatusMenuConfig) (StatusMenu, error) {
-	return driver.NewStatusMenu(c)
+func NewStatusMenu(c StatusMenuConfig) StatusMenu {
+	s, _ := driver.NewStatusMenu(c)
+	return s
 }
 
 // Dock returns the dock tile.
-//
-// It panics if called before Run.
-func Dock() (DockTile, error) {
-	return driver.Dock()
+func Dock() DockTile {
+	d, _ := driver.Dock()
+	return d
 }
 
 // CallOnUIGoroutine calls a function on the UI goroutine.
 // UI goroutine is the running application main thread.
 func CallOnUIGoroutine(f func()) {
 	driver.CallOnUIGoroutine(f)
+}
+
+// Log logs a message according to a format specifier.
+// It is a helper function that calls Log() for all the loggers set in
+// app.Loggers.
+func Log(format string, v ...interface{}) {
+	for _, l := range Loggers {
+		l.Log(format, v...)
+	}
+}
+
+// Debug logs a debug message according to a format specifier.
+// It is a helper function that calls Debug() for all the loggers set in
+// app.Loggers.
+func Debug(format string, v ...interface{}) {
+	for _, l := range Loggers {
+		l.Debug(format, v...)
+	}
+}
+
+// WhenDebug execute the given function when debug mode is enabled.
+// It is a helper function that calls WhenDebug() for all the loggers set in
+// app.Loggers.
+func WhenDebug(f func()) {
+	for _, l := range Loggers {
+		l.WhenDebug(f)
+	}
 }
